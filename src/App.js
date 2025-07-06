@@ -8,6 +8,8 @@ import './App.css';
 import Login from './components/auth/login';
 import Signup from './components/auth/signup';
 import Home from './components/home';
+import Navbar from './components/navbar';
+import UploadResumePage from './components/UploadResumePage'; // Add this import
 
 function App() {
   // Simple authentication check (replace with real logic/token check)
@@ -21,7 +23,11 @@ function App() {
           path="/"
           element={
             isAuthenticated ? (
+              <>
+              <Navbar />
+              
               <Home />
+              </>
             ) : (
               <Navigate to="/login" replace />
             )
@@ -32,8 +38,9 @@ function App() {
           element={<Login setIsAuthenticated={setIsAuthenticated} />}
         />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/resumejobs" element={<UploadResumePage />} />
         {/* Optionally, fallback route */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
       </Routes>
     </Router>
   );

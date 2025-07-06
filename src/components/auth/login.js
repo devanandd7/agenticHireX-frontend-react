@@ -37,7 +37,7 @@ const LoginPage = ({ setIsAuthenticated }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // Optionally store token: localStorage.setItem('authToken', data.token);
+        localStorage.setItem('authToken', data.token); // Store token for authenticated requests
         setIsAuthenticated(true); // Update authentication state
         navigate('/'); // Redirect to home page
       } else {

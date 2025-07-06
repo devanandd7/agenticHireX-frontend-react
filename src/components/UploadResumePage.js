@@ -10,6 +10,7 @@ const UploadResumePage = ({ setCurrentPage }) => {
   const [showJobDetail, setShowJobDetail] = useState(null); // job id for job detail modal
   const [showCoverLetter, setShowCoverLetter] = useState(null); // job id for cover letter modal
   const [copied, setCopied] = useState(false);
+  const [error, setError] = useState('');
 
   // Dummy job data with 'type' property
   const dummyJobResults = [
@@ -74,18 +75,52 @@ const UploadResumePage = ({ setCurrentPage }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedFile) return;
-
+    setError('');
     setIsProcessing(true);
-    setJobResults([]); // Clear previous results
-    setIsFileProcessed(false); // Reset processed state
+    setJobResults([]);
+    setIsFileProcessed(false);
 
-    // Simulate API call for processing resume and fetching jobs
-    await new Promise(resolve => setTimeout(resolve, 3000)); // Simulate processing time
+    try {
+      // 1. Upload resume
+      const formData = new FormData();
+      formData.append('resume', selectedFile);
 
-    setJobResults(dummyJobResults); // Set simulated job results
-    setIsProcessing(false);
-    setIsFileProcessed(true); // Mark file as processed
+      const uploadRes = await fetch('http://localhost:8000/api/resume/upload', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+        },
+        body: formData,
+      });
+
+      const uploadData = await uploadRes.json();
+      if (!uploadData.success) {
+        throw new Error(uploadData.message || 'Resume upload failed');
+      }
+
+      // 2. Fetch filtered jobs
+      const jobsRes = await fetch('http://localhost:8000/api/jobs/filter-job-boards', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+        },
+        body: JSON.stringify({}),
+      });
+
+      const jobsData = await jobsRes.json();
+      if (!jobsData.success) {
+        throw new Error(jobsData.message || 'Failed to fetch jobs');
+      }
+
+      // 3. Set filtered jobs to state
+      setJobResults(jobsData.filteredJobs || []);
+      setIsFileProcessed(true);
+    } catch (err) {
+      setError(err.message || 'An error occurred');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleRemoveFile = () => {
