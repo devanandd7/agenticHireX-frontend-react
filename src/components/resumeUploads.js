@@ -1,0 +1,420 @@
+import React, { useState } from 'react';
+
+const UploadResumePage = ({ setCurrentPage }) => {
+  const [selectedFile, setSelectedFile] = useState(null); // Stores the File object
+  const [resumePreviewUrl, setResumePreviewUrl] = useState(null); // Stores the Data URL for image preview
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+  const [jobResults, setJobResults] = useState([]); // State to store simulated job results
+  const [isFileProcessed, setIsFileProcessed] = useState(false); // New state to track if file is processed
+  const [showJobDetail, setShowJobDetail] = useState(null); // job id for job detail modal
+  const [showCoverLetter, setShowCoverLetter] = useState(null); // job id for cover letter modal
+  const [copied, setCopied] = useState(false);
+
+  // Dummy job data with 'type' property
+  const dummyJobResults = [
+    { id: 1, type: 'real', title: 'Senior AI Engineer', company: 'Tech Solutions Inc.', location: 'Remote', description: 'Develop cutting-edge AI models for enterprise solutions.' },
+    { id: 2, type: 'fake', title: 'Work From Home Data Entry', company: 'Easy Money Schemes', location: 'Online', description: 'No experience needed! Earn $500/hour from home. (Scam)' },
+    { id: 3, type: 'real', title: 'Machine Learning Scientist', company: 'Innovate AI Labs', location: 'New York, NY', description: 'Research and implement advanced ML algorithms.' },
+    { id: 4, type: 'fake', title: 'Urgent Crypto Investment', company: 'Global Wealth Partners', location: 'Remote', description: 'Invest now and double your money in 24 hours! (Scam)' },
+    { id: 5, type: 'real', title: 'Data Scientist - NLP', company: 'Global Data Corp', location: 'San Francisco, CA', description: 'Analyze large text datasets and build NLP applications.' },
+    { id: 6, type: 'real', title: 'AI Research Intern', company: 'FutureTech R&D', location: 'Seattle, WA (Hybrid)', description: 'Assist in experimental AI research projects.' },
+    { id: 7, type: 'fake', title: 'Mystery Shopper - High Pay', company: 'Secret Shopper Co.', location: 'Local', description: 'Get paid to shop and evaluate stores. Send us money for training kit. (Scam)' },
+    { id: 8, type: 'real', title: 'Computer Vision Engineer', company: 'Visual AI Systems', location: 'Austin, TX', description: 'Design and deploy computer vision systems for automation.' },
+  ];
+
+  // Dummy cover letter for demonstration
+  const getCoverLetter = (job) =>
+    `Dear ${job.company},\n\nI am excited to apply for the position of ${job.title}. My skills and experience make me a great fit for this role.\n\nBest regards,\n[Your Name]`;
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedFile(file);
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setResumePreviewUrl(reader.result);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setSelectedFile(null);
+      setResumePreviewUrl(null);
+      setJobResults([]); // Clear results if file is deselected
+      setIsFileProcessed(false);
+    }
+  };
+
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      setSelectedFile(file);
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setResumePreviewUrl(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedFile) return;
+
+    setIsProcessing(true);
+    setJobResults([]); // Clear previous results
+    setIsFileProcessed(false); // Reset processed state
+
+    // Simulate API call for processing resume and fetching jobs
+    await new Promise(resolve => setTimeout(resolve, 3000)); // Simulate processing time
+
+    setJobResults(dummyJobResults); // Set simulated job results
+    setIsProcessing(false);
+    setIsFileProcessed(true); // Mark file as processed
+  };
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    setResumePreviewUrl(null);
+    setJobResults([]);
+    setIsFileProcessed(false); // Reset processed state
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-900 text-gray-100 p-4 font-inter">
+      <div className="max-w-7xl mx-auto py-8">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-indigo-400 mb-4">
+            Upload Your Resume & Find Jobs
+          </h1>
+          <p className="text-xl text-gray-300">
+            Let our AI analyze your resume and instantly show you relevant job matches.
+          </p>
+        </div>
+
+        {/* Top Section: Resume Upload Area (Always Visible) */}
+        <div className="bg-gray-800 rounded-2xl shadow-xl p-6 border border-indigo-700 flex flex-col max-w-3xl mx-auto mb-8">
+          <h2 className="text-2xl font-bold text-white mb-4 text-center">Resume Uploads</h2>
+          <form onSubmit={handleSubmit} className="space-y-6 flex-grow flex flex-col">
+            <div
+              className={`relative border-2 border-dashed rounded-xl p-8 text-center flex-grow flex flex-col items-center justify-center
+                ${dragActive ? 'border-blue-500 bg-blue-900' : 'border-gray-600 bg-gray-700'}`}
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+            >
+              <input
+                type="file"
+                id="resume-upload"
+                accept=".pdf,.doc,.docx,image/*"
+                onChange={handleFileChange}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+              />
+
+              {!selectedFile ? (
+                <div className="space-y-4">
+                  <div className="mx-auto w-16 h-16 bg-indigo-700 rounded-full flex items-center justify-center">
+                    <svg
+                      className="w-8 h-8 text-indigo-200"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                      />
+                    </svg>
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-semibold text-white">
+                      Drop your resume here
+                    </h3>
+                    <p className="text-gray-400">
+                      or click to browse files
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Supported formats: PDF, DOC, DOCX, Images (max 5MB)
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4 w-full">
+                  <div className="bg-gray-700 rounded-lg p-3 flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <svg
+                        className="w-6 h-6 text-indigo-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
+                      <div>
+                        <p className="font-medium text-white">{selectedFile.name}</p>
+                        <p className="text-sm text-gray-400">
+                          {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemoveFile}
+                      className="text-red-400 hover:text-red-300 transition duration-200"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-center mt-6">
+              <button
+                type="submit"
+                disabled={!selectedFile || isProcessing}
+                className={`px-8 py-3 rounded-lg font-medium text-white transition duration-200 ease-in-out transform hover:scale-105
+                  ${!selectedFile || isProcessing
+                    ? 'bg-gray-600 cursor-not-allowed'
+                    : 'bg-indigo-600 hover:bg-indigo-700'
+                  }`}
+              >
+                {isProcessing ? (
+                  <div className="flex items-center space-x-2">
+                    <svg
+                      className="animate-spin h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    <span>Processing...</span>
+                  </div>
+                ) : (
+                  'Analyze Resume & Find Jobs'
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Bottom Section: Resume Preview and Job Results (Conditional) */}
+        {selectedFile && (
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Left Column: Resume Preview */}
+            <div className="lg:w-1/2 bg-gray-800 rounded-2xl shadow-xl p-6 border border-indigo-700 flex flex-col items-center">
+              <h2 className="text-2xl font-bold text-white mb-4">Resume Preview</h2>
+              {resumePreviewUrl && selectedFile && selectedFile.type.startsWith('image/') && (
+                <div className="w-full max-h-[calc(100vh-300px)] overflow-hidden rounded-lg border border-gray-600 flex items-center justify-center bg-gray-700">
+                  <img src={resumePreviewUrl} alt="Resume Preview" className="max-w-full max-h-full object-contain" />
+                </div>
+              )}
+              {selectedFile && selectedFile.type === 'application/pdf' && (
+                <div className="w-full max-h-[calc(100vh-300px)] overflow-hidden rounded-lg border border-gray-600 flex items-center justify-center bg-gray-700">
+                  <iframe
+                    src={resumePreviewUrl || URL.createObjectURL(selectedFile)}
+                    title="PDF Preview"
+                    className="w-full h-[500px] rounded-lg"
+                  />
+                </div>
+              )}
+              {selectedFile && !selectedFile.type.startsWith('image/') && selectedFile.type !== 'application/pdf' && (
+                <div className="text-gray-400 text-sm p-4 text-center">
+                  <p>Preview not available for this file type.</p>
+                  <p className="mt-2">File: <span className="font-medium text-white">{selectedFile.name}</span></p>
+                  <p>Size: <span className="font-medium text-white">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</span></p>
+                </div>
+              )}
+            </div>
+
+            {/* Right Column: Job Results */}
+            <div className="lg:w-1/2 bg-gray-800 rounded-2xl shadow-xl p-6 border border-purple-700 flex flex-col">
+              <h2 className="text-2xl font-bold text-white mb-4">Fake and Real Jobs based on Resume</h2>
+              {isProcessing && jobResults.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                  <svg className="animate-spin h-10 w-10 text-purple-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <p>Analyzing your resume and finding jobs...</p>
+                </div>
+              ) : (
+                jobResults.length > 0 ? (
+                  <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-250px)] custom-scrollbar">
+                    {jobResults.map(job => (
+                      <div
+                        key={job.id}
+                        className={`p-4 rounded-lg shadow-md border
+                          ${job.type === 'real' ? 'bg-green-800 border-green-700' : 'bg-red-800 border-red-700'}`}
+                      >
+                        <h3 className="text-xl font-semibold text-white mb-1">{job.title}</h3>
+                        <p className="text-gray-200 text-sm mb-2">{job.company} - {job.location}</p>
+                        <p className="text-gray-300 text-sm line-clamp-2">{job.description}</p>
+                        <div className="flex items-center gap-2 mt-3">
+                          <button className={`text-sm transition duration-200 text-white font-medium px-4 py-2 rounded-lg border-2 border-solid-
+                            ${job.type === 'real' ? 'text-green-50 hover:text-green-200' : 'text-red-50 hover:text-red-200'}`}>
+                            Apply Now
+                          </button>
+                          {/* Bulb Icon for Job Detail */}
+                          <button
+                            onClick={() => setShowJobDetail(job.id)}
+                            title="Show Job Details"
+                            className="ml-2 p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2a7 7 0 00-7 7c0 2.386 1.053 4.507 2.8 5.8A2 2 0 008 17v1a2 2 0 002 2h2a2 2 0 002-2v-1a2 2 0 00.2-.2C17.947 13.507 19 11.386 19 9a7 7 0 00-7-7z" />
+                            </svg>
+                          </button>
+                          {/* Cover Letter Icon */}
+                          <button
+                            onClick={() => setShowCoverLetter(job.id)}
+                            title="Show Cover Letter"
+                            className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12H8m8 0a4 4 0 11-8 0 4 4 0 018 0zm-8 0V8a4 4 0 018 0v4" />
+                            </svg>
+                          </button>
+                        </div>
+                        {/* Job Detail Pop Box */}
+                        {showJobDetail === job.id && (
+                          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+                            <div className="bg-white text-gray-900 rounded-xl shadow-2xl p-8 max-w-md w-full relative">
+                              <button
+                                onClick={() => setShowJobDetail(null)}
+                                className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
+                              >
+                                &times;
+                              </button>
+                              <h3 className="text-2xl font-bold mb-2">{job.title}</h3>
+                              <p className="mb-1 text-gray-700">{job.company} - {job.location}</p>
+                              <p className="mb-4 text-gray-600">{job.description}</p>
+                              <div className="flex justify-end">
+                                <button
+                                  onClick={() => setShowJobDetail(null)}
+                                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg"
+                                >
+                                  Close
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {/* Cover Letter Pop Box */}
+                        {showCoverLetter === job.id && (
+                          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+                            <div className="bg-white text-gray-900 rounded-xl shadow-2xl p-8 max-w-md w-full relative">
+                              <button
+                                onClick={() => setShowCoverLetter(null)}
+                                className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
+                              >
+                                &times;
+                              </button>
+                              <h3 className="text-2xl font-bold mb-2">Cover Letter</h3>
+                              <pre className="bg-gray-100 rounded-lg p-4 text-sm whitespace-pre-wrap mb-4">{getCoverLetter(job)}</pre>
+                              <div className="flex justify-between">
+                                <button
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(getCoverLetter(job));
+                                    setCopied(true);
+                                    setTimeout(() => setCopied(false), 1500);
+                                  }}
+                                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16h8M8 12h8m-6 8h6a2 2 0 002-2V7a2 2 0 00-2-2h-6a2 2 0 00-2 2v13a2 2 0 002 2z" />
+                                  </svg>
+                                  {copied ? "Copied!" : "Copy"}
+                                </button>
+                                <button
+                                  onClick={() => setShowCoverLetter(null)}
+                                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg"
+                                >
+                                  Close
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-400 text-center">
+                    <p>No job results to display yet. Upload your resume!</p>
+                  </div>
+                )
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Back to Home button, always visible at the bottom */}
+        <div className="text-center mt-8">
+          <button
+            onClick={() => setCurrentPage('home')}
+            className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
+          >
+            Back to Home
+          </button>
+        </div>
+      </div>
+      <style>{`
+        /* Custom scrollbar for job results */
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #374151; /* gray-700 */
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #6366F1; /* indigo-500 */
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #4F46E5; /* indigo-600 */
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default UploadResumePage;
+
