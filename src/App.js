@@ -10,6 +10,7 @@ import Signup from './components/auth/signup';
 import Home from './components/home';
 import Navbar from './components/navbar';
 import UploadResumePage from './components/UploadResumePage'; // Add this import
+import UserDashboard from './components/UserDashboard'; // <-- Add this
 
 function App() {
   // Simple authentication check (replace with real logic/token check)
@@ -18,16 +19,13 @@ function App() {
   // Pass setIsAuthenticated to Login to update auth state after login
   return (
     <Router>
+      <Navbar />
       <Routes>
         <Route
           path="/"
           element={
             isAuthenticated ? (
-              <>
-              <Navbar />
-              
               <Home />
-              </>
             ) : (
               <Navigate to="/login" replace />
             )
@@ -39,6 +37,7 @@ function App() {
         />
         <Route path="/signup" element={<Signup />} />
         <Route path="/resumejobs" element={<UploadResumePage />} />
+        <Route path="/dashboard" element={<UserDashboard />} />
         {/* Optionally, fallback route */}
         {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
       </Routes>

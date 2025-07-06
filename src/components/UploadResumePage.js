@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from "framer-motion";
 
 const UploadResumePage = ({ setCurrentPage }) => {
   const [selectedFile, setSelectedFile] = useState(null); // Stores the File object
@@ -11,6 +12,25 @@ const UploadResumePage = ({ setCurrentPage }) => {
   const [showCoverLetter, setShowCoverLetter] = useState(null); // job id for cover letter modal
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
+  const [verifyingJobId, setVerifyingJobId] = useState(null);
+  const [verificationResult, setVerificationResult] = useState(null);
+  const [reportingJobId, setReportingJobId] = useState(null);
+  const [reportedJobs, setReportedJobs] = useState([]);
+  const [verifiedJobs, setVerifiedJobs] = useState([]);
+
+  const jobListVariants = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: 0.12,
+      },
+    },
+  };
+
+  const jobCardVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 400, damping: 30 } },
+  };
 
   // Dummy job data with 'type' property
   const dummyJobResults = [
@@ -109,6 +129,7 @@ const UploadResumePage = ({ setCurrentPage }) => {
       });
 
       const jobsData = await jobsRes.json();
+      console.log(('Jobs Data:', jobsData));
       if (!jobsData.success) {
         throw new Error(jobsData.message || 'Failed to fetch jobs');
       }
@@ -128,6 +149,51 @@ const UploadResumePage = ({ setCurrentPage }) => {
     setResumePreviewUrl(null);
     setJobResults([]);
     setIsFileProcessed(false); // Reset processed state
+  };
+
+  const handleVerifyJob = async (jobId) => {
+    setVerifyingJobId(jobId);
+    setVerificationResult(null);
+    try {
+      const res = await fetch('http://localhost:8000/api/verify-job/verifyJobs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+        },
+        body: JSON.stringify({ jobId }),
+      });
+      const data = await res.json();
+      setVerificationResult(data);
+
+      // If verified, add to verifiedJobs
+      if (data.success && data.isFake === false) {
+        setVerifiedJobs((prev) => [...prev, jobId]);
+      }
+    } catch (err) {
+      setVerificationResult({ error: 'Verification failed' });
+    }
+  };
+
+  const handleReportJob = async (jobId) => {
+    setReportingJobId(jobId);
+    try {
+      const res = await fetch(`http://localhost:8000/api/jobs/report/${jobId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+        },
+        body: JSON.stringify({ reason: 'Suspicious job posting' }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setReportedJobs((prev) => [...prev, jobId]);
+      }
+    } catch (err) {
+      // handle error
+    }
+    setReportingJobId(null);
   };
 
   return (
@@ -311,12 +377,17 @@ const UploadResumePage = ({ setCurrentPage }) => {
                 </div>
               ) : (
                 jobResults.length > 0 ? (
-                  <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-250px)] custom-scrollbar">
+                  <motion.div
+                    className="space-y-4 overflow-y-auto max-h-[calc(100vh-250px)] custom-scrollbar"
+                    variants={jobListVariants}
+                    initial="hidden"
+                    animate="visible"
+                  >
                     {jobResults.map(job => (
-                      <div
-                        key={job.id}
-                        className={`p-4 rounded-lg shadow-md border
-                          ${job.type === 'real' ? 'bg-green-800 border-green-700' : 'bg-red-800 border-red-700'}`}
+                      <motion.div
+                        key={job.id || job.jobId}
+                        variants={jobCardVariants}
+                        className={`p-4 rounded-lg shadow-md border bg-green-800 border-green-700`}
                       >
                         <h3 className="text-xl font-semibold text-white mb-1">{job.title}</h3>
                         <p className="text-gray-200 text-sm mb-2">{job.company} - {job.location}</p>
@@ -346,6 +417,29 @@ const UploadResumePage = ({ setCurrentPage }) => {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12H8m8 0a4 4 0 11-8 0 4 4 0 018 0zm-8 0V8a4 4 0 018 0v4" />
                             </svg>
                           </button>
+                          {verifiedJobs.includes(job.jobId || job.id) ? (
+                            <span className="text-blue-400 font-semibold ml-2">Verified</span>
+                          ) : (
+                            <button
+                              onClick={() => handleVerifyJob(job.jobId || job.id)}
+                              className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded"
+                              disabled={verifyingJobId === (job.jobId || job.id)}
+                            >
+                              {verifyingJobId === (job.jobId || job.id) ? 'Verifying...' : 'Verify'}
+                            </button>
+                          )}
+                         
+                          {reportedJobs.includes(job.jobId || job.id) ? (
+                            <span className="text-red-400 font-semibold ml-2">Reported</span>
+                          ) : (
+                            <button
+                              onClick={() => handleReportJob(job.jobId || job.id)}
+                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
+                              disabled={reportingJobId === (job.jobId || job.id)}
+                            >
+                              {reportingJobId === (job.jobId || job.id) ? 'Reporting...' : 'Report'}
+                            </button>
+                          )}
                         </div>
                         {/* Job Detail Pop Box */}
                         {showJobDetail === job.id && (
@@ -407,9 +501,9 @@ const UploadResumePage = ({ setCurrentPage }) => {
                             </div>
                           </div>
                         )}
-                      </div>
+                      </motion.div>
                     ))}
-                  </div>
+                  </motion.div>
                 ) : (
                   <div className="flex items-center justify-center h-full text-gray-400 text-center">
                     <p>No job results to display yet. Upload your resume!</p>
@@ -420,15 +514,54 @@ const UploadResumePage = ({ setCurrentPage }) => {
           </div>
         )}
 
-        {/* Back to Home button, always visible at the bottom */}
-        <div className="text-center mt-8">
-          <button
-            onClick={() => setCurrentPage('home')}
-            className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
-          >
-            Back to Home
-          </button>
-        </div>
+       
+
+        {verifyingJobId && verificationResult && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.25, type: "spring", stiffness: 300, damping: 30 }}
+              className="bg-white text-gray-900 rounded-xl shadow-2xl p-0 max-w-md w-full relative flex flex-col"
+              style={{ maxHeight: '90vh' }}
+            >
+              {/* Sticky close button */}
+              <button
+                onClick={() => { setVerifyingJobId(null); setVerificationResult(null); }}
+                className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 z-10 bg-white/80 rounded-full px-2 py-1 shadow"
+                style={{ position: 'sticky', top: 8 }}
+              >
+                &times;
+              </button>
+              <div className="overflow-y-auto p-8 pt-10" style={{ maxHeight: '80vh' }}>
+                <h3 className="text-2xl font-bold mb-2">Job Verification</h3>
+                {verificationResult.error ? (
+                  <p className="text-red-500">{verificationResult.error}</p>
+                ) : (
+                  <>
+                    <p><strong>Status:</strong> {verificationResult.isFake ? 'Fake' : 'Verified'}</p>
+                    <p><strong>Verification Score:</strong> {verificationResult.verificationScore}</p>
+                    <p><strong>Reasons:</strong></p>
+                    <ul className="list-disc ml-6">
+                      {verificationResult.reasons && verificationResult.reasons.map((reason, idx) => (
+                        <li key={idx}>{reason}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+                <div className="flex justify-end mt-4">
+                  <button
+                    onClick={() => { setVerifyingJobId(null); setVerificationResult(null); }}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </div>
       <style>{`
         /* Custom scrollbar for job results */
