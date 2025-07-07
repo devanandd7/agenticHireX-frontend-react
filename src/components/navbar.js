@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from "framer-motion"; // Corrected import from "motion/react" and "motion/react-client"
 import { useLocation, useNavigate } from "react-router-dom";
 
-const Navbar = () => {
+const Navbar = ({ isAuthenticated, onLogout }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [activePath, setActivePath] = useState(location.pathname);
@@ -16,7 +16,6 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Uploads', path: '/resumejobs' },
-    { name: 'Jobs', path: '/jobs' },
     { name: 'Contact', path: '/contact' },
     { name: 'Dashboard', path: '/dashboard' },
   ];
@@ -26,11 +25,15 @@ const Navbar = () => {
     navigate(path);
   };
 
+  const handleLogin = () => {
+    navigate('/login');
+  };
+
   return (
     <nav className="bg-gray-950 bg-opacity-80 backdrop-blur-md shadow-xl sticky top-0 z-50 rounded-b-lg py-3 px-6">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <div className="text-indigo-400 text-3xl md:text-4xl font-extrabold tracking-wide">AgenticHireX</div>
-        <ul className="flex list-none p-0 m-0 font-medium text-sm md:text-base space-x-2 md:space-x-4">
+        <ul className="flex list-none p-0 m-0 font-medium text-sm md:text-base space-x-2 md:space-x-4 items-center">
           {navLinks.map(link => (
             <motion.li
               key={link.name}
@@ -60,6 +63,24 @@ const Navbar = () => {
               </AnimatePresence>
             </motion.li>
           ))}
+          {/* Login/Logout Button */}
+          <li>
+            {isAuthenticated ? (
+              <button
+                className="ml-4 px-4 py-2 rounded-lg bg-indigo-500 text-white font-semibold hover:bg-indigo-600 transition"
+                onClick={onLogout}
+              >
+                Logout
+              </button>
+            ) : (
+              <button
+                className="ml-4 px-4 py-2 rounded-lg bg-indigo-500 text-white font-semibold hover:bg-indigo-600 transition"
+                onClick={handleLogin}
+              >
+                Login
+              </button>
+            )}
+          </li>
         </ul>
       </div>
     </nav>

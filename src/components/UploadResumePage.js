@@ -17,6 +17,9 @@ const UploadResumePage = ({ setCurrentPage }) => {
   const [reportingJobId, setReportingJobId] = useState(null);
   const [reportedJobs, setReportedJobs] = useState([]);
   const [verifiedJobs, setVerifiedJobs] = useState([]);
+  const [jobInsights, setJobInsights] = useState(null);
+  const [insightsLoading, setInsightsLoading] = useState(false);
+  const [insightsError, setInsightsError] = useState('');
 
   const jobListVariants = {
     hidden: {},
@@ -194,6 +197,29 @@ const UploadResumePage = ({ setCurrentPage }) => {
       // handle error
     }
     setReportingJobId(null);
+  };
+
+  const handleShowJobDetail = async (jobId) => {
+    setShowJobDetail(jobId);
+    setJobInsights(null);
+    setInsightsError('');
+    setInsightsLoading(true);
+    try {
+      const res = await fetch(`http://localhost:8000/api/job-application/insights/${jobId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+        },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setJobInsights(data.insights);
+      } else {
+        setInsightsError(data.message || 'Failed to fetch insights');
+      }
+    } catch (err) {
+      setInsightsError('Failed to fetch insights');
+    }
+    setInsightsLoading(false);
   };
 
   return (
@@ -393,13 +419,18 @@ const UploadResumePage = ({ setCurrentPage }) => {
                         <p className="text-gray-200 text-sm mb-2">{job.company} - {job.location}</p>
                         <p className="text-gray-300 text-sm line-clamp-2">{job.description}</p>
                         <div className="flex items-center gap-2 mt-3">
-                          <button className={`text-sm transition duration-200 text-white font-medium px-4 py-2 rounded-lg border-2 border-solid-
-                            ${job.type === 'real' ? 'text-green-50 hover:text-green-200' : 'text-red-50 hover:text-red-200'}`}>
+                          <a
+                            href={job.url || job.applyLink || '#'}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`text-sm transition duration-200 text-white font-medium px-4 py-2 rounded-lg border-2 ${job.type === 'real' ? 'text-green-50 hover:text-green-200' : 'text-red-50 hover:text-red-200'}`}
+                            style={{ textDecoration: 'none' }}
+                          >
                             Apply Now
-                          </button>
+                          </a>
                           {/* Bulb Icon for Job Detail */}
                           <button
-                            onClick={() => setShowJobDetail(job.id)}
+                            onClick={() => handleShowJobDetail(job.jobId || job.id)}
                             title="Show Job Details"
                             className="ml-2 p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition"
                           >
@@ -409,13 +440,14 @@ const UploadResumePage = ({ setCurrentPage }) => {
                           </button>
                           {/* Cover Letter Icon */}
                           <button
-                            onClick={() => setShowCoverLetter(job.id)}
-                            title="Show Cover Letter"
-                            className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition"
+                            onClick={() => setShowCoverLetter(job.id || job.jobId)}
+                            title="Show Job Cover Details"
+                            className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition flex items-center gap-1"
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            {/* <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12H8m8 0a4 4 0 11-8 0 4 4 0 018 0zm-8 0V8a4 4 0 018 0v4" />
-                            </svg>
+                            </svg> */}
+                            <span className="hidden md:inline text-blue-200 font-medium text-xs md:text-sm">Cover-letter</span>
                           </button>
                           {verifiedJobs.includes(job.jobId || job.id) ? (
                             <span className="text-blue-400 font-semibold ml-2">Verified</span>
@@ -441,66 +473,6 @@ const UploadResumePage = ({ setCurrentPage }) => {
                             </button>
                           )}
                         </div>
-                        {/* Job Detail Pop Box */}
-                        {showJobDetail === job.id && (
-                          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-                            <div className="bg-white text-gray-900 rounded-xl shadow-2xl p-8 max-w-md w-full relative">
-                              <button
-                                onClick={() => setShowJobDetail(null)}
-                                className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
-                              >
-                                &times;
-                              </button>
-                              <h3 className="text-2xl font-bold mb-2">{job.title}</h3>
-                              <p className="mb-1 text-gray-700">{job.company} - {job.location}</p>
-                              <p className="mb-4 text-gray-600">{job.description}</p>
-                              <div className="flex justify-end">
-                                <button
-                                  onClick={() => setShowJobDetail(null)}
-                                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg"
-                                >
-                                  Close
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                        {/* Cover Letter Pop Box */}
-                        {showCoverLetter === job.id && (
-                          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-                            <div className="bg-white text-gray-900 rounded-xl shadow-2xl p-8 max-w-md w-full relative">
-                              <button
-                                onClick={() => setShowCoverLetter(null)}
-                                className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
-                              >
-                                &times;
-                              </button>
-                              <h3 className="text-2xl font-bold mb-2">Cover Letter</h3>
-                              <pre className="bg-gray-100 rounded-lg p-4 text-sm whitespace-pre-wrap mb-4">{getCoverLetter(job)}</pre>
-                              <div className="flex justify-between">
-                                <button
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(getCoverLetter(job));
-                                    setCopied(true);
-                                    setTimeout(() => setCopied(false), 1500);
-                                  }}
-                                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16h8M8 12h8m-6 8h6a2 2 0 002-2V7a2 2 0 00-2-2h-6a2 2 0 00-2 2v13a2 2 0 002 2z" />
-                                  </svg>
-                                  {copied ? "Copied!" : "Copy"}
-                                </button>
-                                <button
-                                  onClick={() => setShowCoverLetter(null)}
-                                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg"
-                                >
-                                  Close
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        )}
                       </motion.div>
                     ))}
                   </motion.div>
@@ -514,7 +486,140 @@ const UploadResumePage = ({ setCurrentPage }) => {
           </div>
         )}
 
-       
+        {showJobDetail && (() => {
+          const job = jobResults.find(j => (j.id || j.jobId) === showJobDetail);
+          if (!job) return null;
+          return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.25, type: "spring", stiffness: 300, damping: 30 }}
+                className="bg-white text-gray-900 rounded-xl shadow-2xl p-0 max-w-md w-full relative flex flex-col"
+                style={{ maxHeight: '90vh' }}
+              >
+                {/* Sticky close button */}
+                <button
+                  onClick={() => setShowJobDetail(null)}
+                  className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 z-10 bg-white/80 rounded-full px-2 py-1 shadow"
+                  style={{ position: 'sticky', top: 8 }}
+                >
+                  &times;
+                </button>
+                <div className="overflow-y-auto p-8 pt-10" style={{ maxHeight: '80vh' }}>
+                  <h3 className="text-2xl font-bold mb-2 text-indigo-700 break-words">{job.title}</h3>
+                  <div className="mb-2 text-gray-700 text-base font-semibold">
+                    <span className="block mb-1">{job.company}</span>
+                    <span className="block text-sm text-gray-500">{job.location}</span>
+                  </div>
+                  <hr className="my-4 border-gray-200" />
+                  <div className="text-gray-800 text-base whitespace-pre-line leading-relaxed break-words" style={{ wordBreak: 'break-word' }}>
+                    {job.description}
+                  </div>
+                  <hr className="my-4 border-gray-200" />
+                  <div>
+                    <h4 className="text-lg font-bold text-indigo-600 mb-2">Job Insights</h4>
+                    {insightsLoading ? (
+                      <div className="text-center text-gray-500 py-4">Loading insights...</div>
+                    ) : insightsError ? (
+                      <div className="text-red-500 py-2">{insightsError}</div>
+                    ) : jobInsights ? (
+                      <div className="space-y-2">
+                        <div><strong>Match %:</strong> {jobInsights.matchPercentage}</div>
+                        <div>
+                          <strong>Strengths:</strong>
+                          <ul className="list-disc ml-6">
+                            {jobInsights.strengths && jobInsights.strengths.map((s, i) => <li key={i}>{s}</li>)}
+                          </ul>
+                        </div>
+                        <div>
+                          <strong>Improvements:</strong>
+                          <ul className="list-disc ml-6">
+                            {jobInsights.improvements && jobInsights.improvements.map((s, i) => <li key={i}>{s}</li>)}
+                          </ul>
+                        </div>
+                        <div>
+                          <strong>Examples:</strong>
+                          <ul className="list-disc ml-6">
+                            {jobInsights.examples && jobInsights.examples.map((s, i) => <li key={i}>{s}</li>)}
+                          </ul>
+                        </div>
+                        <div>
+                          <strong>Recommendations:</strong>
+                          <ul className="list-disc ml-6">
+                            {jobInsights.recommendations && jobInsights.recommendations.map((s, i) => <li key={i}>{s}</li>)}
+                          </ul>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-gray-400">No insights available.</div>
+                    )}
+                  </div>
+                  <div className="flex justify-end mt-6">
+                    <button
+                      onClick={() => setShowJobDetail(null)}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          );
+        })()}
+
+        {showCoverLetter && (() => {
+          const job = jobResults.find(j => (j.id || j.jobId) === showCoverLetter);
+          if (!job) return null;
+          return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.25, type: "spring", stiffness: 300, damping: 30 }}
+                className="bg-white text-gray-900 rounded-xl shadow-2xl p-0 max-w-md w-full relative flex flex-col"
+                style={{ maxHeight: '90vh' }}
+              >
+                {/* Sticky close button */}
+                <button
+                  onClick={() => setShowCoverLetter(null)}
+                  className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 z-10 bg-white/80 rounded-full px-2 py-1 shadow"
+                  style={{ position: 'sticky', top: 8 }}
+                >
+                  &times;
+                </button>
+                <div className="overflow-y-auto p-8 pt-10" style={{ maxHeight: '80vh' }}>
+                  <h3 className="text-2xl font-bold mb-4 text-blue-700 break-words">Cover Letter</h3>
+                  <pre className="bg-gray-100 rounded-lg p-4 text-base whitespace-pre-wrap mb-6 text-gray-800 break-words" style={{ wordBreak: 'break-word' }}>{getCoverLetter(job)}</pre>
+                  <div className="flex justify-between gap-2 mt-2">
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(getCoverLetter(job));
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 1500);
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-semibold shadow"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16h8M8 12h8m-6 8h6a2 2 0 002-2V7a2 2 0 00-2-2h-6a2 2 0 00-2 2v13a2 2 0 002 2z" />
+                      </svg>
+                      {copied ? "Copied!" : "Copy Cover Letter"}
+                    </button>
+                    <button
+                      onClick={() => setShowCoverLetter(null)}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold shadow"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          );
+        })()}
 
         {verifyingJobId && verificationResult && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">

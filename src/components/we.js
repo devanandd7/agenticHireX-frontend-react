@@ -14,6 +14,10 @@ const WeScrollAnimationPage = ({ setCurrentPage }) => {
   // Ref to the main animation container to check its visibility in the viewport
   const animationContainerRef = useRef(null);
 
+  // New refs for scroll counting and direction
+  const scrollCountRef = useRef(0); // Counts consecutive scroll events
+  const lastScrollDirectionRef = useRef(null); // Stores 'up' or 'down'
+
   useEffect(() => {
     // Function to handle mouse wheel events
     const handleWheel = (e) => {
@@ -23,36 +27,46 @@ const WeScrollAnimationPage = ({ setCurrentPage }) => {
         const viewportHeight = window.innerHeight;
 
         // Define a threshold for "fully covers the screen"
-        // This means the element's top is near 0 and its bottom is near window.innerHeight,
-        // and its height is substantial relative to the viewport.
         const isFullyCoveringViewport =
           rect.top <= 50 && // Top is within 50px of viewport top
           rect.bottom >= viewportHeight - 50 && // Bottom is within 50px of viewport bottom
           rect.height >= viewportHeight * 0.8; // And its height is at least 80% of viewport height
 
         if (isFullyCoveringViewport) {
+          const newDirection = e.deltaY > 0 ? 'down' : 'up';
+
+          // If direction changes, reset the scroll count
+          if (lastScrollDirectionRef.current !== newDirection) {
+            scrollCountRef.current = 0;
+          }
+          lastScrollDirectionRef.current = newDirection;
+
+          // Increment the scroll count
+          scrollCountRef.current += 1;
+
           const isAtStartAndScrollingUp = currentPhraseIndex === 0 && e.deltaY < 0;
           const isAtEndAndScrollingDown = currentPhraseIndex === phrases.length - 1 && e.deltaY > 0;
 
           // Prevent default page scroll ONLY if we are within the animation bounds
           // This allows natural page scroll when at the very beginning or very end of the animation sequence
           if (!isAtStartAndScrollingUp && !isAtEndAndScrollingDown) {
-            e.preventDefault();
+            e.preventDefault(); // Prevent default browser scroll
           }
 
-          // Update the phrase index based on scroll direction
-          // Each scroll event (deltaY) will trigger a single phrase change
-          if (e.deltaY > 0) { // Scrolling down
-            setCurrentPhraseIndex((prevIndex) =>
-              Math.min(prevIndex + 1, phrases.length - 1) // Increment, but not beyond last phrase
-            );
-          } else if (e.deltaY < 0) { // Scrolling up
-            setCurrentPhraseIndex((prevIndex) =>
-              Math.max(prevIndex - 1, 0) // Decrement, but not below first phrase
-            );
+          // Only change phrase after 3 scroll events in the same direction
+          if (scrollCountRef.current >= 3) {
+            if (e.deltaY > 0) { // Scrolling down
+              setCurrentPhraseIndex((prevIndex) =>
+                Math.min(prevIndex + 1, phrases.length - 1) // Increment, but not beyond last phrase
+              );
+            } else if (e.deltaY < 0) { // Scrolling up
+              setCurrentPhraseIndex((prevIndex) =>
+                Math.max(prevIndex - 1, 0) // Decrement, but not below first phrase
+              );
+            }
+            // Reset the counter after a phrase change
+            scrollCountRef.current = 0;
           }
-          // If at the boundaries and still scrolling in that direction,
-          // the `e.preventDefault()` is NOT called, allowing the page to scroll naturally.
         }
       }
     };
@@ -66,6 +80,24 @@ const WeScrollAnimationPage = ({ setCurrentPage }) => {
       window.removeEventListener('wheel', handleWheel);
     };
   }, [currentPhraseIndex, phrases.length]); // Re-run effect if currentPhraseIndex or phrases change
+
+  // Lock scroll when not at start or end
+  useEffect(() => {
+    const section = animationContainerRef.current;
+    if (
+      section &&
+      currentPhraseIndex !== 0 &&
+      currentPhraseIndex !== phrases.length - 1
+    ) {
+      section.scrollIntoView({ behavior: 'auto', block: 'start' });
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [currentPhraseIndex, phrases.length]);
 
   return (
     <div className="bg-black text-white font-inter min-h-screen flex flex-col">

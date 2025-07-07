@@ -1,93 +1,100 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-// Main App component for the text carousel
+// Utility to preload all images
+const preloadImages = (srcArray) => {
+  return Promise.all(
+    srcArray.map((src) => {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = src;
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+    })
+  );
+};
+
 const App = () => {
-  // Array of text data for the carousel
-  const texts = [
-    "cu",
-    "crosseye",
-    "crossTech",
-    "agenticHireX"
+  const images = [
+    '/images/Indeed.png',
+    '/images/IBM.png',
+    '/images/LinkedIn.png',
+    '/images/Nvidia.png',
+    '/images/Naukari.png',
   ];
 
-  // Ref to the inner scrolling container to measure its width
+  const duplicatedImages = [...images, ...images]; // for infinite scroll
   const scrollRef = useRef(null);
-  // State to hold the current scroll position (translateX value)
   const [scrollPosition, setScrollPosition] = useState(0);
+  const [contentWidth, setContentWidth] = useState(0);
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  // Speed of the scroll in pixels per frame (adjust for desired speed)
-  const scrollSpeed = 0.5; // Controls how fast the text scrolls
+  const scrollSpeed = 0.5; // Slower for smooth effect
 
+  // Preload images and calculate width
   useEffect(() => {
+    preloadImages(images).then(() => {
+      setIsLoaded(true);
+      setTimeout(() => {
+        const scrollContent = scrollRef.current;
+        if (scrollContent) {
+          const width = Array.from(scrollContent.children)
+            .slice(0, images.length) // Only one set
+            .reduce((sum, child) => sum + child.offsetWidth, 0);
+          setContentWidth(width);
+        }
+      }, 100); // Small delay to ensure DOM is ready
+    });
+  }, []);
+
+  // Animate scroll
+  useEffect(() => {
+    if (!isLoaded || contentWidth === 0) return;
+
     let animationFrameId;
-    const scrollContent = scrollRef.current;
 
-    const animateScroll = () => {
-      if (scrollContent) {
-        // We duplicate the content to create a seamless loop.
-        // The 'loopPoint' is the width of one full set of the original texts.
-        // When the scroll position reaches this point, it resets to 0,
-        // making the duplicated content appear as the original content.
-        const contentWidth = scrollContent.scrollWidth / 2; // Assuming content is duplicated once
-
-        setScrollPosition((prevPos) => {
-          let newPos = prevPos + scrollSpeed;
-
-          // If the scroll position exceeds the width of the first set of content,
-          // reset it back to 0 to create the seamless loop.
-          if (newPos >= contentWidth) {
-            newPos = 0;
-          }
-          return newPos;
-        });
-      }
-      animationFrameId = requestAnimationFrame(animateScroll);
+    const animate = () => {
+      setScrollPosition((prev) => {
+        const next = prev + scrollSpeed;
+        return next >= contentWidth ? 0 : next;
+      });
+      animationFrameId = requestAnimationFrame(animate);
     };
 
-    // Start the animation loop
-    animationFrameId = requestAnimationFrame(animateScroll);
-
-    // Cleanup function to cancel the animation frame when the component unmounts
+    animationFrameId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationFrameId);
-  }, [scrollSpeed]); // Re-run effect if scrollSpeed changes
-
-  // To make the loop truly seamless, we need to render the texts at least twice.
-  // This ensures that as the first set scrolls out of view, the second set
-  // is already scrolling in, creating the illusion of an infinite loop.
-  const duplicatedTexts = [...texts, ...texts];
+  }, [isLoaded, contentWidth]);
 
   return (
-    // Removed min-h-screen to allow the page height to match content height
-    <div className="flex items-center justify-center bg-gray-100 p-4 font-inter">
-      {/* Changed max-w-4xl to w-full to make it full width */}
-      <div className="relative w-full bg-white shadow-xl rounded-lg overflow-hidden">
-        {/* Carousel container for text - Removed fixed height classes */}
-        <div className="relative overflow-hidden py-4"> {/* Added vertical padding for spacing */}
-          {/* Inner container for sliding text - Removed h-full */}
-          {/* Uses flex to lay out items horizontally and whitespace-nowrap to keep them on one line */}
-          {/* The transform property is dynamically updated to create the scrolling effect */}
+    <div className="flex items-center justify-center bg-transparent font-inter">
+      <div className="relative w-full overflow-hidden bg-transparent">
+        <div className="relative overflow-hidden py-6 bg-transparent">
           <div
-            ref={scrollRef} // Attach ref to measure the total width of the content
-            className="flex whitespace-nowrap" // Removed h-full
-            style={{ transform: `translateX(-${scrollPosition}px)` }}
+            ref={scrollRef}
+            className="flex whitespace-nowrap"
+            style={{
+              transform: `translateX(-${scrollPosition}px)`,
+              willChange: 'transform',
+              transition: 'none',
+            }}
           >
-            {duplicatedTexts.map((text, index) => (
+            {duplicatedImages.map((src, index) => (
               <div
-                key={index} // Using index as key, consider a more unique key if texts can be identical
-                // flex-shrink-0 ensures items don't shrink and maintain their natural width
-                // px-4 adds horizontal padding to each text item
-                className="flex-shrink-0 flex items-center justify-center text-center px-4"
+                key={index}
+                className="flex-shrink-0 flex items-center justify-center px-6"
+                style={{ height: '100px' }}
               >
-                {/* Added user-select-none to prevent text selection and cursor blinking */}
-                <p className="text-5xl md:text-7xl font-extrabold text-gray-800 select-none">
-                  {text}
-                </p>
+                <img
+                  src={src}
+                  alt={src.split('/').pop().replace('.png', '')}
+                  className="h-16 md:h-20 object-contain select-none"
+                  draggable="false"
+                  style={{ maxWidth: '180px', minWidth: '120px' }}
+                />
               </div>
             ))}
           </div>
         </div>
-
-        {/* Navigation Buttons and Dot Indicators are removed for continuous scroll */}
       </div>
     </div>
   );
