@@ -515,7 +515,7 @@ function App() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br opacity-100 from-slate-50 via-blue-50 to-indigo-100 flex items-center overflow-hidden relative p-9">
+    <div className="min-h-screen bg-gradient-to-br opacity-100 from-slate-50 via-blue-50 to-indigo-100 flex items-center overflow-hidden relative p-10">
       {/* Enhanced background with depth */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-600 to-purple-600"></div>
@@ -650,17 +650,6 @@ function App() {
         </button>
       </div>
 
-      {/* Enhanced Bottom Instructions */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center z-10">
-        <p className="text-sm text-gray-500 mb-2">
-          Hover to pause • Click dots to navigate • Experience realistic 3D rotation
-        </p>
-        <div className="flex items-center justify-center space-x-2 text-xs text-gray-400">
-          <Star size={12} className="text-yellow-400" />
-          <span>Premium 3D talent showcase</span>
-          <Star size={12} className="text-yellow-400" />
-        </div>
-      </div>
 
       {/* 3D Depth Indicators */}
       <div className="absolute bottom-4 right-4 text-xs text-gray-400 space-y-1">
@@ -673,7 +662,6 @@ function App() {
 }
 
 export default App;
-
 
 
 
@@ -1342,3 +1330,4 @@ export default App;
 // }
 
 // export default App;
+

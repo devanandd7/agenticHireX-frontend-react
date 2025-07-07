@@ -56,7 +56,7 @@ const ContactPage = () => {
                 marginBottom: "0.5rem",
               }}
             >
-              Your Name
+              Your Email
             </label>
             <input
               id="name"
