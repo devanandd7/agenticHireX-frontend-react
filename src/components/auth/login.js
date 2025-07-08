@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; // Add this import
 
 const LoginPage = ({ setIsAuthenticated }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Add this line
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,15 +22,19 @@ const LoginPage = ({ setIsAuthenticated }) => {
         throw new Error('Password must be at least 6 characters long.');
       }
 
-      // Mock API call for login
-      // In a real app, replace this with your actual fetch call
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
-      const mockLoginSuccess = email === 'test@example.com' && password === 'password123';
-      const data = {
-        token: 'mockAuthToken123',
-        message: mockLoginSuccess ? 'Login successful' : 'Invalid credentials',
-      };
-      const response = { ok: mockLoginSuccess };
+      // Call AgenticHireX backend for login
+      const response = await fetch('http://localhost:8000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          emailPassword: password, // Backend expects emailPassword
+        }),
+      });
+
+      const data = await response.json();
 
       if (response.ok) {
         localStorage.setItem('authToken', data.token); // Store token for authenticated requests
@@ -62,7 +66,7 @@ const LoginPage = ({ setIsAuthenticated }) => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 rounded-lg bg-gray-100 border border-gray-300 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-3 rounded-lg bg-gray-100 border border-gray-300 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" /* Adjusted input bg, border, text, placeholder */
               placeholder="you@example.com"
             />
           </div>
@@ -75,7 +79,7 @@ const LoginPage = ({ setIsAuthenticated }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-4 py-3 rounded-lg bg-gray-100 border border-gray-300 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-3 rounded-lg bg-gray-100 border border-gray-300 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" /* Adjusted input bg, border, text, placeholder */
               placeholder="••••••••"
             />
           </div>
