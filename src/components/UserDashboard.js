@@ -12,23 +12,24 @@ const StatCard = ({ label, value, color, delay }) => {
     return () => clearTimeout(timer);
   }, [delay]);
 
+  // Adjusted colors for white background
   const bgColorClass = {
-    indigo: 'bg-indigo-800 border-indigo-600',
-    green: 'bg-green-800 border-green-600',
-    blue: 'bg-blue-800 border-blue-600',
-    red: 'bg-red-800 border-red-600',
-    yellow: 'bg-yellow-800 border-yellow-600',
-    gray: 'bg-gray-700 border-gray-600',
-  }[color] || 'bg-gray-800 border-gray-700';
+    indigo: 'bg-indigo-50 border-indigo-200', // Lighter background
+    green: 'bg-green-50 border-green-200',
+    blue: 'bg-blue-50 border-blue-200',
+    red: 'bg-red-50 border-red-200',
+    yellow: 'bg-yellow-50 border-yellow-200',
+    gray: 'bg-gray-50 border-gray-200',
+  }[color] || 'bg-gray-50 border-gray-200';
 
   const textColorClass = {
-    indigo: 'text-indigo-300',
-    green: 'text-green-300',
-    blue: 'text-blue-300',
-    red: 'text-red-300',
-    yellow: 'text-yellow-300',
-    gray: 'text-gray-300',
-  }[color] || 'text-gray-300';
+    indigo: 'text-indigo-700', // Darker text
+    green: 'text-green-700',
+    blue: 'text-blue-700',
+    red: 'text-red-700',
+    yellow: 'text-yellow-700',
+    gray: 'text-gray-700',
+  }[color] || 'text-gray-700';
 
   return (
     <div
@@ -39,7 +40,7 @@ const StatCard = ({ label, value, color, delay }) => {
       style={{ transitionDelay: `${delay}ms` }}
     >
       <div className={`text-4xl font-extrabold ${textColorClass}`}>{value}</div>
-      <div className="text-gray-200 mt-2 text-lg">{label}</div>
+      <div className="text-gray-600 mt-2 text-lg">{label}</div> {/* Adjusted for white background */}
     </div>
   );
 };
@@ -109,13 +110,13 @@ const UserDashboard = ({ setCurrentPage }) => {
 
   if (loading || profileLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-800"> {/* Changed background and text color */}
         <div className="flex flex-col items-center">
-          <svg className="animate-spin h-12 w-12 text-indigo-400 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <svg className="animate-spin h-12 w-12 text-indigo-600 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"> {/* Changed spinner color */}
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-          <p className="text-xl text-gray-300">Loading your personalized dashboard...</p>
+          <p className="text-xl text-gray-600">Loading your personalized dashboard...</p> {/* Adjusted text color */}
         </div>
       </div>
     );
@@ -123,11 +124,11 @@ const UserDashboard = ({ setCurrentPage }) => {
 
   if (error || profileError) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-950 text-red-400 p-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 text-red-600 p-4"> {/* Changed background and text color */}
         <p className="text-center text-lg mb-6">{error || profileError}</p>
         <button
           onClick={() => setCurrentPage && setCurrentPage('home')}
-          className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
+          className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105" // Adjusted button style
         >
           Back to Home
         </button>
@@ -138,31 +139,30 @@ const UserDashboard = ({ setCurrentPage }) => {
   if (!stats || !profile) return null;
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 p-4 font-inter">
+    <div className="min-h-screen bg-white text-gray-800 p-4 font-inter"> {/* Main background and default text color */}
       <div className={`max-w-6xl mx-auto py-8 transition-all duration-1000 ease-out
         ${isDashboardVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
 
         {/* Profile Card */}
-        <div className="mb-10 flex items-center bg-gray-800 rounded-xl shadow-lg p-6 border border-indigo-700">
-          <div className="flex-shrink-0 w-20 h-20 rounded-full bg-indigo-500 flex items-center justify-center text-3xl font-bold text-white mr-6">
+        <div className="mb-10 flex items-center bg-white rounded-xl shadow-lg p-6 border border-indigo-200"> {/* Changed background and border */}
+          <div className="flex-shrink-0 w-20 h-20 rounded-full bg-indigo-200 flex items-center justify-center text-3xl font-bold text-indigo-700 mr-6"> {/* Adjusted avatar background and text color */}
             {profile.name ? profile.name[0].toUpperCase() : '?'}
           </div>
           <div>
-            <div className="text-2xl font-bold text-indigo-300">{profile.name || 'User'}</div>
-            <div className="text-lg text-gray-300">{profile.email || ''}</div>
-            <div className="text-sm text-gray-400">User ID: {profile.id}</div>
+            <div className="text-2xl font-bold text-indigo-700">{profile.name || 'User'}</div> {/* Darker text */}
+            <div className="text-lg text-gray-700">{profile.email || ''}</div> {/* Darker text */}
+            <div className="text-sm text-gray-500">User ID: {profile.id}</div> {/* Darker text */}
           </div>
         </div>
 
         <div className="text-center mb-10">
-          <h1 className="text-5xl md:text-6xl font-extrabold text-indigo-400 mb-3 animate-fade-in-down">Your Dashboard</h1>
-          <p className="text-xl md:text-2xl text-gray-300 animate-fade-in-down delay-200">Track your job search progress and key statistics</p>
+          <h1 className="text-5xl md:text-6xl font-extrabold text-indigo-700 mb-3 animate-fade-in-down">Your Dashboard</h1> {/* Darker text */}
+          <p className="text-xl md:text-2xl text-gray-600 animate-fade-in-down delay-200">Track your job search progress and key statistics</p> {/* Darker text */}
         </div>
 
         {/* Main Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
           <StatCard label="Total Jobs Found" value={stats.totalJobsFound} color="indigo" delay={300} />
-          {/* <StatCard label="Matching Jobs" value={stats.matchingJobs} color="green" delay={400} /> */}
           <StatCard label="Applied Jobs" value={stats.appliedJobs} color="blue" delay={500} />
           <StatCard label="Reported Jobs" value={stats.reportedJobs} color="red" delay={600} />
           <StatCard label="Verified Jobs" value={stats.verifiedJobs} color="yellow" delay={700} />
@@ -170,59 +170,59 @@ const UserDashboard = ({ setCurrentPage }) => {
         </div>
 
         {/* Application Success Rate */}
-        <div className="mb-10 bg-gray-800 rounded-xl shadow-lg p-6 border border-purple-700">
-          <h2 className="text-3xl font-bold text-white mb-4">Application Success Rate</h2>
-          <div className="text-center text-5xl font-extrabold text-purple-400 animate-pulse-fade">
+        <div className="mb-10 bg-white rounded-xl shadow-lg p-6 border border-purple-200"> {/* Changed background and border */}
+          <h2 className="text-3xl font-bold text-gray-800 mb-4">Application Success Rate</h2> {/* Darker text */}
+          <div className="text-center text-5xl font-extrabold text-purple-700 animate-pulse-fade"> {/* Darker text */}
             {stats.applicationSuccessRate}%
           </div>
-          <p className="text-center text-gray-400 mt-2">of your applications lead to positive outcomes!</p>
+          <p className="text-center text-gray-600 mt-2">of your applications lead to positive outcomes!</p> {/* Darker text */}
         </div>
 
         {/* Jobs by Category */}
-        <div className="mb-10 bg-gray-800 rounded-xl shadow-lg p-6 border border-teal-700">
-          <h2 className="text-3xl font-bold text-white mb-4">Jobs by Category</h2>
+        <div className="mb-10 bg-white rounded-xl shadow-lg p-6 border border-teal-200"> {/* Changed background and border */}
+          <h2 className="text-3xl font-bold text-gray-800 mb-4">Jobs by Category</h2> {/* Darker text */}
           <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-lg">
             {stats.jobsByCategory && Object.keys(stats.jobsByCategory).length > 0 ? (
               Object.entries(stats.jobsByCategory).map(([cat, count]) => (
-                <li key={cat} className="flex justify-between items-center bg-gray-700 p-3 rounded-md border border-gray-600 transition-all duration-300 hover:bg-gray-600">
-                  <span className="capitalize text-gray-300">{cat.replace(/-/g, ' ')}</span>
-                  <span className="font-bold text-teal-300">{count}</span>
+                <li key={cat} className="flex justify-between items-center bg-gray-100 p-3 rounded-md border border-gray-200 transition-all duration-300 hover:bg-gray-200">
+                  <span className="capitalize text-gray-700">{cat.replace(/-/g, ' ')}</span>
+                  <span className="font-bold text-teal-700">{count}</span>
                 </li>
               ))
             ) : (
-              <li className="text-gray-400">No categories found.</li>
+              <li className="text-gray-500">No categories found.</li>
             )}
           </ul>
         </div>
 
         {/* Recent Activity */}
-        <div className="mb-10 bg-gray-800 rounded-xl shadow-lg p-6 border border-orange-700">
-          <h2 className="text-3xl font-bold text-white mb-4">Recent Activity (Last 30 days)</h2>
+        <div className="mb-10 bg-white rounded-xl shadow-lg p-6 border border-orange-200"> {/* Changed background and border */}
+          <h2 className="text-3xl font-bold text-gray-800 mb-4">Recent Activity (Last 30 days)</h2> {/* Darker text */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
-            <div className="bg-gray-700 p-4 rounded-lg border border-gray-600">
-              <span className="block text-gray-400 text-md">Recent Applications</span>
-              <span className="text-4xl font-bold text-green-400 mt-1">{stats.recentActivity?.recentApplications ?? 0}</span>
+            <div className="bg-gray-100 p-4 rounded-lg border border-gray-200"> {/* Lighter background and border */}
+              <span className="block text-gray-600 text-md">Recent Applications</span> {/* Darker text */}
+              <span className="text-4xl font-bold text-green-700 mt-1">{stats.recentActivity?.recentApplications ?? 0}</span> {/* Darker text */}
             </div>
-            <div className="bg-gray-700 p-4 rounded-lg border border-gray-600">
-              <span className="block text-gray-400 text-md">Recent Reports</span>
-              <span className="text-4xl font-bold text-red-400 mt-1">{stats.recentActivity?.recentReports ?? 0}</span>
+            <div className="bg-gray-100 p-4 rounded-lg border border-gray-200"> {/* Lighter background and border */}
+              <span className="block text-gray-600 text-md">Recent Reports</span> {/* Darker text */}
+              <span className="text-4xl font-bold text-red-700 mt-1">{stats.recentActivity?.recentReports ?? 0}</span> {/* Darker text */}
             </div>
           </div>
         </div>
 
         {/* Application Status */}
-        <div className="mb-10 bg-gray-800 rounded-xl shadow-lg p-6 border border-blue-700">
-          <h2 className="text-3xl font-bold text-white mb-4">Application Status</h2>
+        <div className="mb-10 bg-white rounded-xl shadow-lg p-6 border border-blue-200"> {/* Changed background and border */}
+          <h2 className="text-3xl font-bold text-gray-800 mb-4">Application Status</h2> {/* Darker text */}
           <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-lg">
             {stats.applicationStatus && Object.keys(stats.applicationStatus).length > 0 ? (
               Object.entries(stats.applicationStatus).map(([status, count]) => (
-                <li key={status} className="flex justify-between items-center bg-gray-700 p-3 rounded-md border border-gray-600 transition-all duration-300 hover:bg-gray-600">
-                  <span className="capitalize text-gray-300">{status.replace(/-/g, ' ')}</span>
-                  <span className="font-bold text-blue-300">{count}</span>
+                <li key={status} className="flex justify-between items-center bg-gray-100 p-3 rounded-md border border-gray-200 transition-all duration-300 hover:bg-gray-200">
+                  <span className="capitalize text-gray-700">{status.replace(/-/g, ' ')}</span>
+                  <span className="font-bold text-blue-700">{count}</span>
                 </li>
               ))
             ) : (
-              <li className="text-gray-400">No application status data.</li>
+              <li className="text-gray-500">No application status data.</li>
             )}
           </ul>
         </div>

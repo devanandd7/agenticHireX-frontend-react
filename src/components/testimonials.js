@@ -21,8 +21,7 @@ const testimonials = [
     name: "Jeremy",
     text: "How Jeremy finally found a shared inbox his team was willing to adopt",
     link: "#",
-    image:
-      "https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/7b20556b-0ff2-49c6-add5-3897d1fb041c.png",
+
   },
   {
     company: "smplrspace",

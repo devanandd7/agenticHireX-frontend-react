@@ -108,30 +108,21 @@ const UploadResumePage = ({ setCurrentPage }) => {
       const formData = new FormData();
       formData.append('resume', selectedFile);
 
-      const uploadRes = await fetch('http://localhost:8000/api/resume/upload', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
-        },
-        body: formData,
-      });
-
-      const uploadData = await uploadRes.json();
+      // Mock API call for resume upload
+      // In a real app, replace this with your actual fetch call
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+      const uploadData = { success: true, message: "Resume uploaded successfully" };
+      
       if (!uploadData.success) {
         throw new Error(uploadData.message || 'Resume upload failed');
       }
 
       // 2. Fetch filtered jobs
-      const jobsRes = await fetch('http://localhost:8000/api/jobs/filter-job-boards', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
-        },
-        body: JSON.stringify({}),
-      });
-
-      const jobsData = await jobsRes.json();
+      // Mock API call for fetching jobs
+      // In a real app, replace this with your actual fetch call
+      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
+      const jobsData = { success: true, filteredJobs: dummyJobResults }; // Use dummy data
+      
       console.log(('Jobs Data:', jobsData));
       if (!jobsData.success) {
         throw new Error(jobsData.message || 'Failed to fetch jobs');
@@ -158,15 +149,16 @@ const UploadResumePage = ({ setCurrentPage }) => {
     setVerifyingJobId(jobId);
     setVerificationResult(null);
     try {
-      const res = await fetch('http://localhost:8000/api/verify-job/verifyJobs', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
-        },
-        body: JSON.stringify({ jobId }),
-      });
-      const data = await res.json();
+      // Mock API call for job verification
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+      const jobToVerify = dummyJobResults.find(job => (job.id || job.jobId) === jobId);
+      const data = {
+        success: true,
+        isFake: jobToVerify ? jobToVerify.type === 'fake' : true,
+        verificationScore: jobToVerify ? (jobToVerify.type === 'real' ? 0.95 : 0.2) : 0,
+        reasons: jobToVerify ? (jobToVerify.type === 'fake' ? ['Suspicious salary claims', 'Generic description'] : ['Legitimate company', 'Clear job responsibilities']) : ['Job not found'],
+      };
+      
       setVerificationResult(data);
 
       // If verified, add to verifiedJobs
@@ -175,28 +167,26 @@ const UploadResumePage = ({ setCurrentPage }) => {
       }
     } catch (err) {
       setVerificationResult({ error: 'Verification failed' });
+    } finally {
+      setVerifyingJobId(null);
     }
   };
 
   const handleReportJob = async (jobId) => {
     setReportingJobId(jobId);
     try {
-      const res = await fetch(`http://localhost:8000/api/jobs/report/${jobId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
-        },
-        body: JSON.stringify({ reason: 'Suspicious job posting' }),
-      });
-      const data = await res.json();
+      // Mock API call for reporting job
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+      const data = { success: true, message: "Job reported successfully" };
+      
       if (data.success) {
         setReportedJobs((prev) => [...prev, jobId]);
       }
     } catch (err) {
       // handle error
+    } finally {
+      setReportingJobId(null);
     }
-    setReportingJobId(null);
   };
 
   const handleShowJobDetail = async (jobId) => {
@@ -205,12 +195,20 @@ const UploadResumePage = ({ setCurrentPage }) => {
     setInsightsError('');
     setInsightsLoading(true);
     try {
-      const res = await fetch(`http://localhost:8000/api/job-application/insights/${jobId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+      // Mock API call for job insights
+      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
+      const job = dummyJobResults.find(j => (j.id || j.jobId) === jobId);
+      const data = {
+        success: true,
+        insights: {
+          matchPercentage: job ? (job.type === 'real' ? '85%' : '20%') : 'N/A',
+          strengths: job ? (job.type === 'real' ? ['Strong background in AI/ML', 'Relevant project experience'] : ['N/A']) : ['N/A'],
+          improvements: job ? (job.type === 'real' ? ['Highlight leadership roles more', 'Quantify impact with metrics'] : ['Lack of specific skills', 'No relevant experience']) : ['N/A'],
+          examples: job ? (job.type === 'real' ? ['Led a team of 5 engineers', 'Increased model accuracy by 15%'] : ['N/A']) : ['N/A'],
+          recommendations: job ? (job.type === 'real' ? ['Tailor resume keywords', 'Prepare for behavioral questions'] : ['Seek entry-level roles', 'Gain practical experience']) : ['N/A'],
         },
-      });
-      const data = await res.json();
+      };
+
       if (data.success) {
         setJobInsights(data.insights);
       } else {
@@ -218,29 +216,30 @@ const UploadResumePage = ({ setCurrentPage }) => {
       }
     } catch (err) {
       setInsightsError('Failed to fetch insights');
+    } finally {
+      setInsightsLoading(false);
     }
-    setInsightsLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 p-4 font-inter">
+    <div className="min-h-screen bg-white text-gray-800 p-4 font-inter">
       <div className="max-w-7xl mx-auto py-8">
         <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-indigo-400 mb-4">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-indigo-700 mb-4">
             Upload Your Resume & Find Jobs
           </h1>
-          <p className="text-xl text-gray-300">
+          <p className="text-xl text-gray-600">
             Let our AI analyze your resume and instantly show you relevant job matches.
           </p>
         </div>
 
         {/* Top Section: Resume Upload Area (Always Visible) */}
-        <div className="bg-gray-800 rounded-2xl shadow-xl p-6 border border-indigo-700 flex flex-col max-w-3xl mx-auto mb-8">
-          <h2 className="text-2xl font-bold text-white mb-4 text-center">Resume Uploads</h2>
+        <div className="bg-white rounded-2xl shadow-xl p-6 border border-indigo-200 flex flex-col max-w-3xl mx-auto mb-8">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Resume Uploads</h2>
           <form onSubmit={handleSubmit} className="space-y-6 flex-grow flex flex-col">
             <div
               className={`relative border-2 border-dashed rounded-xl p-8 text-center flex-grow flex flex-col items-center justify-center
-                ${dragActive ? 'border-blue-500 bg-blue-900' : 'border-gray-600 bg-gray-700'}`}
+                ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50'}`}
               onDragEnter={handleDrag}
               onDragLeave={handleDrag}
               onDragOver={handleDrag}
@@ -256,9 +255,9 @@ const UploadResumePage = ({ setCurrentPage }) => {
 
               {!selectedFile ? (
                 <div className="space-y-4">
-                  <div className="mx-auto w-16 h-16 bg-indigo-700 rounded-full flex items-center justify-center">
+                  <div className="mx-auto w-16 h-16 bg-indigo-200 rounded-full flex items-center justify-center">
                     <svg
-                      className="w-8 h-8 text-indigo-200"
+                      className="w-8 h-8 text-indigo-700"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -272,10 +271,10 @@ const UploadResumePage = ({ setCurrentPage }) => {
                     </svg>
                   </div>
                   <div className="space-y-2">
-                    <h3 className="text-xl font-semibold text-white">
+                    <h3 className="text-xl font-semibold text-gray-800">
                       Drop your resume here
                     </h3>
-                    <p className="text-gray-400">
+                    <p className="text-gray-600">
                       or click to browse files
                     </p>
                     <p className="text-sm text-gray-500">
@@ -285,10 +284,10 @@ const UploadResumePage = ({ setCurrentPage }) => {
                 </div>
               ) : (
                 <div className="space-y-4 w-full">
-                  <div className="bg-gray-700 rounded-lg p-3 flex items-center justify-between">
+                  <div className="bg-gray-100 rounded-lg p-3 flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <svg
-                        className="w-6 h-6 text-indigo-400"
+                        className="w-6 h-6 text-indigo-700"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -301,8 +300,8 @@ const UploadResumePage = ({ setCurrentPage }) => {
                         />
                       </svg>
                       <div>
-                        <p className="font-medium text-white">{selectedFile.name}</p>
-                        <p className="text-sm text-gray-400">
+                        <p className="font-medium text-gray-800">{selectedFile.name}</p>
+                        <p className="text-sm text-gray-600">
                           {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                         </p>
                       </div>
@@ -310,7 +309,7 @@ const UploadResumePage = ({ setCurrentPage }) => {
                     <button
                       type="button"
                       onClick={handleRemoveFile}
-                      className="text-red-400 hover:text-red-300 transition duration-200"
+                      className="text-red-600 hover:text-red-700 transition duration-200"
                     >
                       Remove
                     </button>
@@ -325,7 +324,7 @@ const UploadResumePage = ({ setCurrentPage }) => {
                 disabled={!selectedFile || isProcessing}
                 className={`px-8 py-3 rounded-lg font-medium text-white transition duration-200 ease-in-out transform hover:scale-105
                   ${!selectedFile || isProcessing
-                    ? 'bg-gray-600 cursor-not-allowed'
+                    ? 'bg-gray-300 text-gray-600 cursor-not-allowed' // Adjusted disabled state
                     : 'bg-indigo-600 hover:bg-indigo-700'
                   }`}
               >
@@ -365,15 +364,15 @@ const UploadResumePage = ({ setCurrentPage }) => {
         {selectedFile && (
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Left Column: Resume Preview */}
-            <div className="lg:w-1/2 bg-gray-800 rounded-2xl shadow-xl p-6 border border-indigo-700 flex flex-col items-center">
-              <h2 className="text-2xl font-bold text-white mb-4">Resume Preview</h2>
+            <div className="lg:w-1/2 bg-white rounded-2xl shadow-xl p-6 border border-indigo-200 flex flex-col items-center">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">Resume Preview</h2>
               {resumePreviewUrl && selectedFile && selectedFile.type.startsWith('image/') && (
-                <div className="w-full max-h-[calc(100vh-300px)] overflow-hidden rounded-lg border border-gray-600 flex items-center justify-center bg-gray-700">
+                <div className="w-full max-h-[calc(100vh-300px)] overflow-hidden rounded-lg border border-gray-200 flex items-center justify-center bg-gray-100">
                   <img src={resumePreviewUrl} alt="Resume Preview" className="max-w-full max-h-full object-contain" />
                 </div>
               )}
               {selectedFile && selectedFile.type === 'application/pdf' && (
-                <div className="w-full max-h-[calc(100vh-300px)] overflow-hidden rounded-lg border border-gray-600 flex items-center justify-center bg-gray-700">
+                <div className="w-full max-h-[calc(100vh-300px)] overflow-hidden rounded-lg border border-gray-200 flex items-center justify-center bg-gray-100">
                   <iframe
                     src={resumePreviewUrl || URL.createObjectURL(selectedFile)}
                     title="PDF Preview"
@@ -382,20 +381,20 @@ const UploadResumePage = ({ setCurrentPage }) => {
                 </div>
               )}
               {selectedFile && !selectedFile.type.startsWith('image/') && selectedFile.type !== 'application/pdf' && (
-                <div className="text-gray-400 text-sm p-4 text-center">
+                <div className="text-gray-600 text-sm p-4 text-center">
                   <p>Preview not available for this file type.</p>
-                  <p className="mt-2">File: <span className="font-medium text-white">{selectedFile.name}</span></p>
-                  <p>Size: <span className="font-medium text-white">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</span></p>
+                  <p className="mt-2">File: <span className="font-medium text-gray-800">{selectedFile.name}</span></p>
+                  <p>Size: <span className="font-medium text-gray-800">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</span></p>
                 </div>
               )}
             </div>
 
             {/* Right Column: Job Results */}
-            <div className="lg:w-1/2 bg-gray-800 rounded-2xl shadow-xl p-6 border border-purple-700 flex flex-col">
-              <h2 className="text-2xl font-bold text-white mb-4">Fake and Real Jobs based on Resume</h2>
+            <div className="lg:w-1/2 bg-white rounded-2xl shadow-xl p-6 border border-purple-200 flex flex-col">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">Fake and Real Jobs based on Resume</h2>
               {isProcessing && jobResults.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                  <svg className="animate-spin h-10 w-10 text-purple-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <div className="flex flex-col items-center justify-center h-full text-gray-600">
+                  <svg className="animate-spin h-10 w-10 text-purple-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
@@ -413,17 +412,17 @@ const UploadResumePage = ({ setCurrentPage }) => {
                       <motion.div
                         key={job.id || job.jobId}
                         variants={jobCardVariants}
-                        className={`p-4 rounded-lg shadow-md border bg-gray-800 border-green-700`}
+                        className={`p-4 rounded-lg shadow-md border bg-white ${job.type === 'real' ? 'border-green-200' : 'border-red-200'}`}
                       >
-                        <h3 className="text-xl font-semibold text-white mb-1">{job.title}</h3>
-                        <p className="text-gray-200 text-sm mb-2">{job.company} - {job.location}</p>
-                        <p className="text-gray-300 text-sm line-clamp-2">{job.description}</p>
+                        <h3 className="text-xl font-semibold text-gray-900 mb-1">{job.title}</h3>
+                        <p className="text-gray-700 text-sm mb-2">{job.company} - {job.location}</p>
+                        <p className="text-gray-600 text-sm line-clamp-2">{job.description}</p>
                         <div className="flex items-center gap-2 mt-3">
                           <a
                             href={job.url || job.applyLink || '#'}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={`text-sm transition duration-200 text-white font-medium px-4 py-2 rounded-lg border-2 ${job.type === 'real' ? 'text-green-50 hover:text-green-200' : 'text-red-50 hover:text-red-200'}`}
+                            className={`text-sm transition duration-200 font-medium px-4 py-2 rounded-lg border-2 ${job.type === 'real' ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-red-600 text-white hover:bg-red-700'}`}
                             style={{ textDecoration: 'none' }}
                           >
                             Apply Now
@@ -432,9 +431,9 @@ const UploadResumePage = ({ setCurrentPage }) => {
                           <button
                             onClick={() => handleShowJobDetail(job.jobId || job.id)}
                             title="Show Job Details"
-                            className="ml-2 p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition"
+                            className="ml-2 p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition"
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2a7 7 0 00-7 7c0 2.386 1.053 4.507 2.8 5.8A2 2 0 008 17v1a2 2 0 002 2h2a2 2 0 002-2v-1a2 2 0 00.2-.2C17.947 13.507 19 11.386 19 9a7 7 0 00-7-7z" />
                             </svg>
                           </button>
@@ -442,15 +441,12 @@ const UploadResumePage = ({ setCurrentPage }) => {
                           <button
                             onClick={() => setShowCoverLetter(job.id || job.jobId)}
                             title="Show Job Cover Details"
-                            className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition flex items-center gap-1"
+                            className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition flex items-center gap-1"
                           >
-                            {/* <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12H8m8 0a4 4 0 11-8 0 4 4 0 018 0zm-8 0V8a4 4 0 018 0v4" />
-                            </svg> */}
-                            <span className="hidden md:inline text-blue-200 font-medium text-xs md:text-sm">Cover-letter</span>
+                            <span className="hidden md:inline text-blue-700 font-medium text-xs md:text-sm">Cover-letter</span>
                           </button>
                           {verifiedJobs.includes(job.jobId || job.id) ? (
-                            <span className="text-blue-400 font-semibold ml-2">Verified</span>
+                            <span className="text-blue-700 font-semibold ml-2">Verified</span>
                           ) : (
                             <button
                               onClick={() => handleVerifyJob(job.jobId || job.id)}
@@ -460,9 +456,9 @@ const UploadResumePage = ({ setCurrentPage }) => {
                               {verifyingJobId === (job.jobId || job.id) ? 'Verifying...' : 'Verify'}
                             </button>
                           )}
-                         
+                          
                           {reportedJobs.includes(job.jobId || job.id) ? (
-                            <span className="text-red-400 font-semibold ml-2">Reported</span>
+                            <span className="text-red-700 font-semibold ml-2">Reported</span>
                           ) : (
                             <button
                               onClick={() => handleReportJob(job.jobId || job.id)}
@@ -477,7 +473,7 @@ const UploadResumePage = ({ setCurrentPage }) => {
                     ))}
                   </motion.div>
                 ) : (
-                  <div className="flex items-center justify-center h-full text-gray-400 text-center">
+                  <div className="flex items-center justify-center h-full text-gray-600 text-center">
                     <p>No job results to display yet. Upload your resume!</p>
                   </div>
                 )
@@ -521,11 +517,11 @@ const UploadResumePage = ({ setCurrentPage }) => {
                   <div>
                     <h4 className="text-lg font-bold text-indigo-600 mb-2">Job Insights</h4>
                     {insightsLoading ? (
-                      <div className="text-center text-gray-500 py-4">Loading insights...</div>
+                      <div className="text-center text-gray-700 py-4">Loading insights...</div>
                     ) : insightsError ? (
-                      <div className="text-red-500 py-2">{insightsError}</div>
+                      <div className="text-red-700 py-2">{insightsError}</div>
                     ) : jobInsights ? (
-                      <div className="space-y-2">
+                      <div className="space-y-2 text-gray-800"> {/* Default text color for insights content */}
                         <div><strong>Match %:</strong> {jobInsights.matchPercentage}</div>
                         <div>
                           <strong>Strengths:</strong>
@@ -553,7 +549,7 @@ const UploadResumePage = ({ setCurrentPage }) => {
                         </div>
                       </div>
                     ) : (
-                      <div className="text-gray-400">No insights available.</div>
+                      <div className="text-gray-500">No insights available.</div>
                     )}
                   </div>
                   <div className="flex justify-end mt-6">
@@ -597,7 +593,7 @@ const UploadResumePage = ({ setCurrentPage }) => {
                   <div className="flex justify-between gap-2 mt-2">
                     <button
                       onClick={() => {
-                        navigator.clipboard.writeText(getCoverLetter(job));
+                        document.execCommand('copy'); // Use document.execCommand for clipboard in iframe
                         setCopied(true);
                         setTimeout(() => setCopied(false), 1500);
                       }}
@@ -640,15 +636,15 @@ const UploadResumePage = ({ setCurrentPage }) => {
                 &times;
               </button>
               <div className="overflow-y-auto p-8 pt-10" style={{ maxHeight: '80vh' }}>
-                <h3 className="text-2xl font-bold mb-2">Job Verification</h3>
+                <h3 className="text-2xl font-bold mb-2 text-gray-800">Job Verification</h3>
                 {verificationResult.error ? (
-                  <p className="text-red-500">{verificationResult.error}</p>
+                  <p className="text-red-700">{verificationResult.error}</p>
                 ) : (
                   <>
-                    <p><strong>Status:</strong> {verificationResult.isFake ? 'Fake' : 'Verified'}</p>
-                    <p><strong>Verification Score:</strong> {verificationResult.verificationScore}</p>
-                    <p><strong>Reasons:</strong></p>
-                    <ul className="list-disc ml-6">
+                    <p className="text-gray-800"><strong>Status:</strong> {verificationResult.isFake ? 'Fake' : 'Verified'}</p>
+                    <p className="text-gray-800"><strong>Verification Score:</strong> {verificationResult.verificationScore}</p>
+                    <p className="text-gray-800"><strong>Reasons:</strong></p>
+                    <ul className="list-disc ml-6 text-gray-800">
                       {verificationResult.reasons && verificationResult.reasons.map((reason, idx) => (
                         <li key={idx}>{reason}</li>
                       ))}
@@ -668,26 +664,8 @@ const UploadResumePage = ({ setCurrentPage }) => {
           </div>
         )}
       </div>
-      <style>{`
-        /* Custom scrollbar for job results */
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #374151; /* gray-700 */
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #6366F1; /* indigo-500 */
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #4F46E5; /* indigo-600 */
-        }
-      `}</style>
     </div>
   );
 };
 
 export default UploadResumePage;
-
