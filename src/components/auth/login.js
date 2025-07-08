@@ -39,7 +39,7 @@ const LoginPage = ({ setIsAuthenticated }) => {
       if (response.ok) {
         localStorage.setItem('authToken', data.token); // Store token for authenticated requests
         setIsAuthenticated(true); // Update authentication state
-        navigate('/'); // Redirect to home page
+        navigate('/resumejobs'); // Redirect to home page
       } else {
         throw new Error(data.message || 'Login failed. Please try again.');
       }

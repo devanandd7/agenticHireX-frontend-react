@@ -413,7 +413,7 @@ const UploadResumePage = ({ setCurrentPage }) => {
                       <motion.div
                         key={job.id || job.jobId}
                         variants={jobCardVariants}
-                        className={`p-4 rounded-lg shadow-md border bg-green-800 border-green-700`}
+                        className={`p-4 rounded-lg shadow-md border bg-gray-800 border-green-700`}
                       >
                         <h3 className="text-xl font-semibold text-white mb-1">{job.title}</h3>
                         <p className="text-gray-200 text-sm mb-2">{job.company} - {job.location}</p>

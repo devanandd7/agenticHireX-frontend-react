@@ -46,8 +46,11 @@ const StatCard = ({ label, value, color, delay }) => {
 
 const UserDashboard = ({ setCurrentPage }) => {
   const [stats, setStats] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(true);
   const [error, setError] = useState('');
+  const [profileError, setProfileError] = useState('');
   const [isDashboardVisible, setIsDashboardVisible] = useState(false); // State for overall dashboard animation
 
   // Fetch dashboard data from backend
@@ -78,7 +81,33 @@ const UserDashboard = ({ setCurrentPage }) => {
     fetchDashboard();
   }, []);
 
-  if (loading) {
+  // Fetch user profile data
+  useEffect(() => {
+    const fetchProfile = async () => {
+      setProfileLoading(true);
+      setProfileError('');
+      try {
+        const res = await fetch('http://localhost:8000/api/auth/profile', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+          },
+        });
+        const data = await res.json();
+        if (res.ok && data && data.user) {
+          setProfile(data.user);
+        } else {
+          setProfileError(data.message || 'Failed to load profile');
+        }
+      } catch (err) {
+        setProfileError('Failed to load profile due to an unexpected error.');
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  if (loading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white">
         <div className="flex flex-col items-center">
@@ -92,10 +121,10 @@ const UserDashboard = ({ setCurrentPage }) => {
     );
   }
 
-  if (error) {
+  if (error || profileError) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-950 text-red-400 p-4">
-        <p className="text-center text-lg mb-6">{error}</p>
+        <p className="text-center text-lg mb-6">{error || profileError}</p>
         <button
           onClick={() => setCurrentPage && setCurrentPage('home')}
           className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
@@ -106,12 +135,24 @@ const UserDashboard = ({ setCurrentPage }) => {
     );
   }
 
-  if (!stats) return null;
+  if (!stats || !profile) return null;
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 p-4 font-inter">
       <div className={`max-w-6xl mx-auto py-8 transition-all duration-1000 ease-out
         ${isDashboardVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+
+        {/* Profile Card */}
+        <div className="mb-10 flex items-center bg-gray-800 rounded-xl shadow-lg p-6 border border-indigo-700">
+          <div className="flex-shrink-0 w-20 h-20 rounded-full bg-indigo-500 flex items-center justify-center text-3xl font-bold text-white mr-6">
+            {profile.name ? profile.name[0].toUpperCase() : '?'}
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-indigo-300">{profile.name || 'User'}</div>
+            <div className="text-lg text-gray-300">{profile.email || ''}</div>
+            <div className="text-sm text-gray-400">User ID: {profile.id}</div>
+          </div>
+        </div>
 
         <div className="text-center mb-10">
           <h1 className="text-5xl md:text-6xl font-extrabold text-indigo-400 mb-3 animate-fade-in-down">Your Dashboard</h1>
