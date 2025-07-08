@@ -213,6 +213,7 @@ const UploadResumePage = ({ setCurrentPage }) => {
       const data = await res.json();
       if (data.success) {
         setJobInsights(data.insights);
+        console.log(data.insights);
       } else {
         setInsightsError(data.message || 'Failed to fetch insights');
       }
