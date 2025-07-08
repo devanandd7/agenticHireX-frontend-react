@@ -1,6 +1,48 @@
-import React from "react";
+ import React, { useState, useRef } from "react";
+ const Contact_image = require("../Assests/contact_image.png");
 
-const ContactPage = () => {
+const Contact= () => {
+  const [form, setForm] = useState({
+    email: "",
+    organizationName: "",
+    message: "",
+  });
+  const [successMsg, setSuccessMsg] = useState("");
+  const [loading, setLoading] = useState(false);
+  const formRef = useRef(null);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setSuccessMsg("");
+    try {
+      const res = await fetch("http://localhost:8000/api/auth/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: form.email,
+          organizationName: form.organizationName,
+          message: form.message,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSuccessMsg(data.msg || "Message sent successfully!");
+        setForm({ email: "", organizationName: "", message: "" });
+        formRef.current.reset();
+      } else {
+        setSuccessMsg(data.msg || "Failed to send message.");
+      }
+    } catch {
+      setSuccessMsg("Failed to send message.");
+    }
+    setLoading(false);
+  };
+
   return (
     <div
       style={{
@@ -32,24 +74,32 @@ const ContactPage = () => {
 
           <p style={{ fontSize: "1rem", lineHeight: "1.6", marginBottom: "1rem" }}>
             We're excited to work with you soon! Please drop an email with your
-            details & requirements to{" "}
-            <a
-              href="mailto:bd@schbang.com"
-              style={{ color: "#000", textDecoration: "underline" }}
-            >
-              bd@schbang.com
-            </a>
+            details 
+          
             .
           </p>
 
-          <p style={{ fontSize: "1rem", lineHeight: "1.6", marginBottom: "2rem" }}>
-            You can also fill this form & we'll get back in 2 business days.
-          </p>
+        
 
-          <form>
-            {/* Name */}
+          {successMsg && (
+            <div
+              style={{
+                background: "#e6ffe6",
+                color: "#006600",
+                padding: "1rem",
+                borderRadius: "4px",
+                marginBottom: "1rem",
+                border: "1px solid #b3ffb3",
+              }}
+            >
+              {successMsg}
+            </div>
+          )}
+
+          <form ref={formRef} onSubmit={handleSubmit}>
+            {/* Email */}
             <label
-              htmlFor="name"
+              htmlFor="email"
               style={{
                 display: "block",
                 fontSize: "1.125rem",
@@ -59,19 +109,21 @@ const ContactPage = () => {
               Your Email
             </label>
             <input
-              id="name"
-              name="name"
-              type="text"
-              placeholder="Your Name"
+              id="email"
+              name="email"
+              type="email"
+              placeholder="Your Email"
               required
               style={inputStyle}
+              value={form.email}
+              onChange={handleChange}
               onFocus={(e) => (e.target.style.borderBottomColor = "#000")}
               onBlur={(e) => (e.target.style.borderBottomColor = "black")}
             />
 
             {/* Organization */}
             <label
-              htmlFor="organization"
+              htmlFor="organizationName"
               style={{
                 display: "block",
                 fontSize: "1.125rem",
@@ -81,12 +133,14 @@ const ContactPage = () => {
               Your Organization's Name
             </label>
             <input
-              id="organization"
-              name="organization"
+              id="organizationName"
+              name="organizationName"
               type="text"
               placeholder="Your Organization's Name"
               required
               style={inputStyle}
+              value={form.organizationName}
+              onChange={handleChange}
               onFocus={(e) => (e.target.style.borderBottomColor = "#000")}
               onBlur={(e) => (e.target.style.borderBottomColor = "black")}
             />
@@ -112,6 +166,8 @@ const ContactPage = () => {
                 ...inputStyle,
                 resize: "vertical",
               }}
+              value={form.message}
+              onChange={handleChange}
               onFocus={(e) => (e.target.style.borderBottomColor = "#000")}
               onBlur={(e) => (e.target.style.borderBottomColor = "black")}
             />
@@ -130,11 +186,13 @@ const ContactPage = () => {
                 cursor: "pointer",
                 borderRadius: "4px",
                 transition: "background-color 0.3s",
+                opacity: loading ? 0.6 : 1,
               }}
+              disabled={loading}
               onMouseEnter={(e) => (e.target.style.backgroundColor = "#444")}
               onMouseLeave={(e) => (e.target.style.backgroundColor = "black")}
             >
-              Send Message
+              {loading ? "Sending..." : "Send Message"}
             </button>
           </form>
         </div>
@@ -148,7 +206,7 @@ const ContactPage = () => {
           }}
         >
           <img
-            src="https://placehold.co/500x500/000000/FFFFFF?text=Get+In+Touch"
+            src={Contact_image}
             alt="Contact"
             style={{
               width: "100%",
@@ -176,4 +234,4 @@ const inputStyle = {
   transition: "border-color 0.3s",
 };
 
-export default ContactPage;
+export default Contact;

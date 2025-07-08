@@ -1,7 +1,6 @@
-"use client" // This directive is often used in Next.js, but included for context if you're using a similar setup.
-
+// Navbar.js
 import React, { useState, useEffect } from 'react';
-import { AnimatePresence, motion } from "framer-motion"; // Corrected import from "motion/react" and "motion/react-client"
+import { AnimatePresence, motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const Navbar = ({ isAuthenticated, onLogout }) => {

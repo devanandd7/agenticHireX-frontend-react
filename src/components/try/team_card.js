@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
+const Dev = require("../../Assests/9.jpg");
+// const Resume2 = require("../Assests/Resume2.jpg");
+// const Resume3 = require("../Assests/Resume3.jpg");
+// const Resume4 = require("../Assests/Resume4.jpg");
 
 // Define the card data with front and back image URLs, and new details for the back face
 const cardData = [
   {
     id: 1,
-    frontImg: "https://i.loli.net/2019/11/23/cnKl1Ykd5rZCVwm.jpg",
-    backImg: "https://i.loli.net/2019/11/16/cqyJiYlRwnTeHmj.jpg", // This image will be behind the text, or can be removed
-    name: "Alice Johnson",
+    frontImg: {Dev},
+    // backImg: "https://i.loli.net/2019/11/16/cqyJiYlRwnTeHmj.jpg", // This image will be behind the text, or can be removed
+    name: "Devanand Utkatsh",
     description: "Lead Developer with expertise in front-end frameworks and UI/UX design.",
   },
   {
@@ -66,7 +70,7 @@ const Card = ({ frontImg, backImg, name, description }) => {
         style={{ backfaceVisibility: 'hidden' }} // Hide back face when rotated away
       >
         <img
-          src={frontImg}
+          src={Dev}
           alt="Card Front"
           className="w-full h-full object-cover rounded-lg shadow-lg"
           // Fallback image in case the main image fails to load

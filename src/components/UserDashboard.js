@@ -56,7 +56,8 @@ const UserDashboard = ({ setCurrentPage }) => {
       setLoading(true);
       setError('');
       try {
-        const res = await fetch('http://localhost:8000/api/job-application/dashboard', {
+        const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
+        const res = await fetch(`${API_BASE}/api/job-application/dashboard`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('authToken')}`,
           },
@@ -117,17 +118,18 @@ const UserDashboard = ({ setCurrentPage }) => {
           <p className="text-xl md:text-2xl text-gray-300 animate-fade-in-down delay-200">Track your job search progress and key statistics</p>
         </div>
 
+        {/* Main Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
           <StatCard label="Total Jobs Found" value={stats.totalJobsFound} color="indigo" delay={300} />
-          <StatCard label="Matching Jobs" value={stats.matchingJobs} color="green" delay={400} />
+          {/* <StatCard label="Matching Jobs" value={stats.matchingJobs} color="green" delay={400} /> */}
           <StatCard label="Applied Jobs" value={stats.appliedJobs} color="blue" delay={500} />
           <StatCard label="Reported Jobs" value={stats.reportedJobs} color="red" delay={600} />
           <StatCard label="Verified Jobs" value={stats.verifiedJobs} color="yellow" delay={700} />
           <StatCard label="Unverified Jobs" value={stats.unverifiedJobs} color="gray" delay={800} />
         </div>
 
-        <div className={`mb-10 bg-gray-800 rounded-xl shadow-lg p-6 border border-purple-700 transition-all duration-700 ease-out delay-[900ms]
-          ${isDashboardVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+        {/* Application Success Rate */}
+        <div className="mb-10 bg-gray-800 rounded-xl shadow-lg p-6 border border-purple-700">
           <h2 className="text-3xl font-bold text-white mb-4">Application Success Rate</h2>
           <div className="text-center text-5xl font-extrabold text-purple-400 animate-pulse-fade">
             {stats.applicationSuccessRate}%
@@ -135,44 +137,52 @@ const UserDashboard = ({ setCurrentPage }) => {
           <p className="text-center text-gray-400 mt-2">of your applications lead to positive outcomes!</p>
         </div>
 
-        <div className={`mb-10 bg-gray-800 rounded-xl shadow-lg p-6 border border-teal-700 transition-all duration-700 ease-out delay-[1000ms]
-          ${isDashboardVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+        {/* Jobs by Category */}
+        <div className="mb-10 bg-gray-800 rounded-xl shadow-lg p-6 border border-teal-700">
           <h2 className="text-3xl font-bold text-white mb-4">Jobs by Category</h2>
           <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-lg">
-            {Object.entries(stats.jobsByCategory).map(([cat, count], index) => (
-              <li key={cat} className="flex justify-between items-center bg-gray-700 p-3 rounded-md border border-gray-600 transition-all duration-300 hover:bg-gray-600">
-                <span className="capitalize text-gray-300">{cat.replace(/-/g, ' ')}</span>
-                <span className="font-bold text-teal-300">{count}</span>
-              </li>
-            ))}
+            {stats.jobsByCategory && Object.keys(stats.jobsByCategory).length > 0 ? (
+              Object.entries(stats.jobsByCategory).map(([cat, count]) => (
+                <li key={cat} className="flex justify-between items-center bg-gray-700 p-3 rounded-md border border-gray-600 transition-all duration-300 hover:bg-gray-600">
+                  <span className="capitalize text-gray-300">{cat.replace(/-/g, ' ')}</span>
+                  <span className="font-bold text-teal-300">{count}</span>
+                </li>
+              ))
+            ) : (
+              <li className="text-gray-400">No categories found.</li>
+            )}
           </ul>
         </div>
 
-        <div className={`mb-10 bg-gray-800 rounded-xl shadow-lg p-6 border border-orange-700 transition-all duration-700 ease-out delay-[1100ms]
-          ${isDashboardVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+        {/* Recent Activity */}
+        <div className="mb-10 bg-gray-800 rounded-xl shadow-lg p-6 border border-orange-700">
           <h2 className="text-3xl font-bold text-white mb-4">Recent Activity (Last 30 days)</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
             <div className="bg-gray-700 p-4 rounded-lg border border-gray-600">
               <span className="block text-gray-400 text-md">Recent Applications</span>
-              <span className="text-4xl font-bold text-green-400 mt-1">{stats.recentActivity.recentApplications}</span>
+              <span className="text-4xl font-bold text-green-400 mt-1">{stats.recentActivity?.recentApplications ?? 0}</span>
             </div>
             <div className="bg-gray-700 p-4 rounded-lg border border-gray-600">
               <span className="block text-gray-400 text-md">Recent Reports</span>
-              <span className="text-4xl font-bold text-red-400 mt-1">{stats.recentActivity.recentReports}</span>
+              <span className="text-4xl font-bold text-red-400 mt-1">{stats.recentActivity?.recentReports ?? 0}</span>
             </div>
           </div>
         </div>
 
-        <div className={`mb-10 bg-gray-800 rounded-xl shadow-lg p-6 border border-blue-700 transition-all duration-700 ease-out delay-[1200ms]
-          ${isDashboardVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+        {/* Application Status */}
+        <div className="mb-10 bg-gray-800 rounded-xl shadow-lg p-6 border border-blue-700">
           <h2 className="text-3xl font-bold text-white mb-4">Application Status</h2>
           <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-lg">
-            {Object.entries(stats.applicationStatus).map(([status, count], index) => (
-              <li key={status} className="flex justify-between items-center bg-gray-700 p-3 rounded-md border border-gray-600 transition-all duration-300 hover:bg-gray-600">
-                <span className="capitalize text-gray-300">{status.replace(/-/g, ' ')}</span>
-                <span className="font-bold text-blue-300">{count}</span>
-              </li>
-            ))}
+            {stats.applicationStatus && Object.keys(stats.applicationStatus).length > 0 ? (
+              Object.entries(stats.applicationStatus).map(([status, count]) => (
+                <li key={status} className="flex justify-between items-center bg-gray-700 p-3 rounded-md border border-gray-600 transition-all duration-300 hover:bg-gray-600">
+                  <span className="capitalize text-gray-300">{status.replace(/-/g, ' ')}</span>
+                  <span className="font-bold text-blue-300">{count}</span>
+                </li>
+              ))
+            ) : (
+              <li className="text-gray-400">No application status data.</li>
+            )}
           </ul>
         </div>
 
